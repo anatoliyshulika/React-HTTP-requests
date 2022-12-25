@@ -1,64 +1,47 @@
+import { ToastContainer } from 'react-toastify';
 import { Component } from 'react';
-import axios from 'axios';
-import ContentLoader from 'react-content-loader';
-import fetchArticlesWithQuery from 'services/api';
-
-axios.defaults.baseURL = 'https://hn.algolia.com/api/v1';
-const MyLoader = () => (
-  <ContentLoader
-    height={140}
-    speed={1}
-    backgroundColor={'#333'}
-    foregroundColor={'#999'}
-    viewBox="0 0 380 70"
-  >
-    {/* Only SVG shapes */}
-    <rect x="0" y="0" rx="5" ry="5" width="70" height="70" />
-    <rect x="80" y="17" rx="4" ry="4" width="300" height="13" />
-    <rect x="80" y="40" rx="3" ry="3" width="250" height="10" />
-  </ContentLoader>
-);
-
-const ArticleList = ({ articles }) => (
-  <ul>
-    {articles.map(({ objectID, url, title }) => (
-      <li key={objectID}>
-        <a href={url} target="_blank" rel="noreferrer noopener">
-          {title}
-        </a>
-      </li>
-    ))}
-  </ul>
-);
+import PokemonForm from './PokemonForm';
 
 class App extends Component {
   state = {
-    articles: [],
-    isLoading: false,
-    error: null,
+    pokemon: null,
+    loading: false,
+    pokemonName: '',
   };
 
-  async componentDidMount() {
-    this.setState({ isLoading: true });
-
-    try {
-      const articles = await fetchArticlesWithQuery('react');
-      this.setState({ articles });
-    } catch (error) {
-      this.setState({ error });
-    } finally {
-      this.setState({ isLoading: false });
-    }
+  componentDidMount() {
+    this.setState({ loading: true });
+    fetch('https://pokeapi.co/api/v2/pokemon/ditto')
+      .then(res => res.json())
+      .then(pokemon => this.setState({ pokemon }))
+      .finally(() => this.setState({ loading: false }));
   }
 
-  render() {
-    const { articles, isLoading, error } = this.state;
+  handleFormSubmit = pokemonName => {
+    this.setState({
+      pokemonName,
+    });
+  };
 
+  render() {
+    const { pokemon, loading } = this.state;
     return (
       <div>
-        {error && <p>Whoops, something went wrong: {error.message}</p>}
-        {isLoading && <MyLoader />}
-        {articles.length > 0 && <ArticleList articles={articles} />}
+        {loading && <h1>Loading...</h1>}
+        {pokemon && <div> Tut budet hrenomon {pokemon.name}</div>}
+        <PokemonForm onSubmit={this.handleFormSubmit} />
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
       </div>
     );
   }
